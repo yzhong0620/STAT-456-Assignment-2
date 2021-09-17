@@ -10,7 +10,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
 ```
 
 ```{r libraries}
@@ -39,7 +39,7 @@ When you finish the assignment, remove the `#` from the options chunk at the top
 
 > Some of the variables were engineered from other variables from different database tables. 
 
-> We will be able to know which are the most important variables that can predictive is_cancaled and how they affect it.
+> We will be able to know which are the most important variables that can predict is_cancaled and how they affect it.
 
 2. Create some exploratory plots or table summaries of the variables in the dataset. Be sure to also examine missing values or other interesting values. You may want to adjust the `fig.width` and `fig.height` in the code chunk options.  
 
@@ -125,7 +125,7 @@ hotel_recipe %>%
 
 5. In this step we will set up a LASSO model and workflow.
 
-> LASSO shrinks some of the coefficients of variables to 0 so that we don't have too many predictors in the model. In this case, we have almost 30 predictors, which is a lot, so it would be great to get rid of some of them.
+> LASSO shrinks some of the coefficients of variables to 0 so that we don't have too many predictors in the model. In this case, we have almost 30 predictors, which is a lot, so it would be great to get rid of some of them to avoid overfitting.
 
 ```{r}
 hotel_lasso_mod <- 
@@ -202,7 +202,7 @@ hotel_lasso_final_mod %>%
   tidy() 
 ```
 
-> arrival_date_month_September, market_segment_Groups, market_segment_Undefined, distribution_channel_Undefined,  and customer_type_Group have coefficients of 0.
+> arrival_date_month_September, market_segment_Groups, market_segment_Undefined, distribution_channel_Undefined,  and assigned_room_type_L have coefficients of 0.
 
 7. Now that we have a model, let's evaluate it a bit more. All we have looked at so far is the cross-validated accuracy from the previous step. 
 
@@ -212,7 +212,7 @@ hotel_lasso_final_mod %>%
   vip()
 ```
 
-> reserved_room_type_P is the most important variable. I'm not very surprised because reserved room type may tell approximately how many guests there are and what their purpose of the reservation is, which could determine the likihood of cancelling the event.
+> reserved_room_type_P is the most important variable, following by deposit_type_Non.Refund and has_precencel_X1. I'm not very surprised because reserved room type may tell approximately how many guests there are and what their purpose of the reservation is, which could determine the likihood of cancelling the event.
 
 ```{r}
 hotel_lasso_test <- hotel_lasso_final_wf %>% 
@@ -229,6 +229,21 @@ conf_mat(preds, is_canceled, .pred_class)
 > The test metric is slightly lower than the cross-validated one, but they are pretty close to each other.
 
 ```{r}
+# True positive
+14333/(14333+7777)
+```
+
+```{r}
+# True negative
+34179/(34179+3404)
+```
+
+```{r}
+# Accuracy
+(34179+14333)/(34179+14333+7777+3404)
+```
+
+```{r}
 preds %>% 
   ggplot(aes(x = .pred_1, fill = is_canceled)) +
   geom_density(alpha = 0.5, color = NA)
@@ -236,7 +251,7 @@ preds %>%
 
 a. What would this graph look like for a model with an accuracy that was close to 1?  
 
-> .pred_1 equals 1 for all is_canceled = 1 and .pred_1 equals 0 for all is_canceled = 0?
+> If the accuracy is close to 1, the red part would mostly has a .pred_1 < 0.5 and the blue part would mostly has a .pred_1 > 0.5.
 
 b. Our predictions are classified as canceled if their predicted probability of canceling is greater than .5. If we wanted to have a high true positive rate, should we make the cutoff for predicted as canceled higher or lower than .5?
 
